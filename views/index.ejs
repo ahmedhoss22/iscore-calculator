@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credit Score Calculator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .card {
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+      .score-display {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+      .score-label {
+        font-size: 1.2rem;
+        color: #7f8c8d;
+      }
+      .loading {
+        display: none;
+      }
+      .alert {
+        display: none;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h2 class="text-center mb-4">Credit I-Score Calculator</h2>
+            <form id="scoreForm">
+              <div class="mb-3">
+                <label for="national_id" class="form-label">National ID</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="national_id"
+                  name="national_id"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                Calculate Score
+              </button>
+            </form>
+
+            <div class="alert alert-danger" id="errorAlert" role="alert"></div>
+
+            <div class="loading text-center mt-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+
+            <div id="result" class="mt-4" style="display: none">
+              <div class="text-center">
+                <div class="score-display" id="score">0</div>
+                <div class="score-label">Credit Score</div>
+              </div>
+              <div class="mt-4">
+                <h5>Score Breakdown:</h5>
+                <div class="row">
+                  <div class="col-6">
+                    <p>Payment History: <span id="paymentScore">0</span>%</p>
+                    <p>Outstanding Debt: <span id="debtScore">0</span>%</p>
+                  </div>
+                  <div class="col-6">
+                    <p>Credit History: <span id="historyScore">0</span>%</p>
+                    <p>Credit Mix: <span id="mixScore">0</span>%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById('scoreForm')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const loading = document.querySelector('.loading');
+          const result = document.getElementById('result');
+          const errorAlert = document.getElementById('errorAlert');
+
+          // Reset UI
+          loading.style.display = 'block';
+          result.style.display = 'none';
+          errorAlert.style.display = 'none';
+          errorAlert.textContent = '';
+
+          try {
+            const response = await fetch('/calculate-score', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                national_id: document.getElementById('national_id').value,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              document.getElementById('score').textContent = data.score;
+              document.getElementById('paymentScore').textContent = Math.round(
+                data.details.paymentScore
+              );
+              document.getElementById('debtScore').textContent = Math.round(
+                data.details.debtScore
+              );
+              document.getElementById('historyScore').textContent = Math.round(
+                data.details.historyScore
+              );
+              document.getElementById('mixScore').textContent = Math.round(
+                data.details.mixScore
+              );
+              result.style.display = 'block';
+            } else {
+              console.log(data);
+              
+              errorAlert.textContent =
+                data.message || 'Error calculating score. Please try again.';
+              errorAlert.style.display = 'block';
+            }
+          } catch (error) {
+            console.log("🚀 ~ .addEventListener ~ error:", error)
+            errorAlert.textContent = error.message || 'An error occurred. Please try again.';
+            errorAlert.style.display = 'block';
+          } finally {
+            loading.style.display = 'none';
+          }
+        });
+    </script>
+  </body>
+</html>
