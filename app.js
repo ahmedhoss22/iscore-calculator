@@ -97,15 +97,22 @@ app.post('/calculate-score', async (req, res) => {
       0.20 * mixScore
     );
 
+    let min =300
+    let max = 850
+
     // Scale the score
-    const scaledScore = 300 + ((finalScore / 100) * (850 - 300));
+    const scaledScore = min + ((finalScore / 100) * (max - min));
 
     // Close all connections
     Object.values(connections).forEach(conn => conn.end());
 
     res.json({
       success: true,
-      score: Math.round(scaledScore * 10) / 10,
+      score: Math.round(scaledScore * 100) / 100,
+      user: {
+        name: user[0].name,
+        age: user[0].age
+      },
       details: {
         paymentScore,
         debtScore,
@@ -124,7 +131,7 @@ app.post('/calculate-score', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 }); 
